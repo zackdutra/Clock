@@ -7,22 +7,23 @@
   <body>
     <div class="clock">
       <div class="clock-face">
-        <div class="hand hour-hand"></div>
-        <div class="hand min-hand"></div>
-        <div class="hand second-hand"></div>
+        <div class="hand hour-hand"><span id="countHours"></span></div>
+        <div class="hand min-hand"><span id="countMinutes"></span></div>
+        <div class="hand second-hand"><span id="countSeconds"></span></div>
       </div>
     </div>
 
     <style>
       html {
-        background: #424242 url(https://source.unsplash.com/user/zdutra);
-        background-size: cover;
+        background-color: #424242;
         font-family: "helvetica neue";
         text-align: center;
         font-size: 10px;
       }
 
       body {
+        background-image: url(https://source.unsplash.com/user/zdutra);
+        background-size: cover;
         margin: 0;
         font-size: 2rem;
         display: flex;
@@ -40,6 +41,7 @@
         position: relative;
         padding: 2rem;
         backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
         box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1), inset 0 0 0 3px #efefef,
           inset 0 0 10px black, 0 0 10px rgba(0, 0, 0, 0.2);
       }
@@ -54,17 +56,25 @@
       }
 
       .hand {
+        display: flex;
+        justify-content: flex-start;
         width: 50%;
         height: 6px;
-        background: black;
+        background: rgba(0, 0, 0, 0);
         position: absolute;
         top: 50%;
         transform-origin: 100%;
         transform: rotate(90deg);
         transition: all 0.05s;
-        filter: drop-shadow(2px 2px 3px rgba(255, 255, 255, 0.6));
-
+        border-radius: 8px;
         transition-timing-function: cubic-bezier(0.1, 2.7, 0.58, 1);
+      }
+      .hand span {
+        display: inline-block;
+        color: white;
+        font-weight: 600;
+        filter: drop-shadow(0 0 0.75rem #3a3a3a);
+        -webkit-filter: drop-shadow(0 0 0.75rem #3a3a3a);
       }
     </style>
 
@@ -72,20 +82,61 @@
       const secondHand = document.querySelector(".second-hand");
       const minuteHand = document.querySelector(".min-hand");
       const hourHand = document.querySelector(".hour-hand");
+      const countSeconds = document.querySelector("#countSeconds");
+      const countMinutes = document.querySelector("#countMinutes");
+      const countHours = document.querySelector("#countHours");
+      const range = (start, end, step = 1) => {
+        let output = [];
+        if (typeof end === "undefined") {
+          end = start;
+          start = 0;
+        }
+        for (let i = start; i < end; i += step) {
+          output.push(i);
+        }
+        return output;
+      };
+      const everyFive = range(0, 65, 5);
 
-      function setDate() {
+      function setTime() {
         const now = new Date();
         const seconds = now.getSeconds();
         const minutes = now.getMinutes();
-        const hours = now.getHours();
-        const secondsDegrees = (seconds / 60) * 360 + 90;
-        const minuteDegrees = (minutes / 60) * 360 + 90;
-        const hourDegrees = (hours / 12) * 360 + 90;
+        let hours = now.getHours();
+        if (hours > 12) {
+          hours = hours - 12;
+        }
+        time = { seconds, minutes, hours };
+      }
+
+      function updateClock() {
+        setTime();
+        if (time.seconds >= 59) {
+          secondHand.style.transition = "none";
+        }
+
+        countSeconds.innerHTML = `${time.seconds}`;
+        countMinutes.innerHTML = `${time.minutes}`;
+        countHours.innerHTML = `${time.hours}`;
+        const secondsDegrees = (time.seconds / 60) * 360 + 90;
+        const minuteDegrees = (time.minutes / 60) * 360 + 90;
+        const hourDegrees = (time.hours / 12) * 360 + 90;
         secondHand.style.transform = `rotate(${secondsDegrees}deg)`;
         minuteHand.style.transform = `rotate(${minuteDegrees}deg)`;
         hourHand.style.transform = `rotate(${hourDegrees}deg)`;
+        countSeconds.style.transform = `rotate(-${secondsDegrees}deg)`;
+        countMinutes.style.transform = `rotate(-${minuteDegrees}deg)`;
+        countHours.style.transform = `rotate(-${hourDegrees}deg)`;
       }
-      setInterval(setDate, 1000);
+      setInterval(updateClock, 1000);
+      function setImage() {
+        const randomInt = Math.floor(Math.random() * 1000) + 1;
+        if (everyFive.includes(time.minutes)) {
+          console.log("New image");
+          document.body.style.backgroundImage = `url(https://source.unsplash.com/user/zdutra?ver=${randomInt})`;
+        }
+      }
+      setInterval(setImage, 300000);
     </script>
   </body>
 </html>
